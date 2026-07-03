@@ -9,11 +9,18 @@ from employee_payroll_tracker.employee import (
     ContractEmployee,
     Intern,
 )
+from employee_payroll_tracker.logger import get_logger
 from employee_payroll_tracker.payroll import process_payroll
+
+logger = get_logger(__name__)
 
 
 def main() -> None:
     """Run the payroll demonstration with sample employees."""
+    logger.info("=" * 40)
+    logger.info("Payroll Tracker started")
+    logger.info("=" * 40)
+
     employees = [
         FullTimeEmployee(
             emp_id=101, name="Alice Johnson", base_salary=5_000.00, bonus=500.00
@@ -31,13 +38,18 @@ def main() -> None:
         Intern(emp_id=302, name="Frank Wilson", stipend=1_000.00),
     ]
 
+    logger.info("Loaded %d employee(s) for processing", len(employees))
+
     payslips = process_payroll(employees)
 
     for payslip in payslips:
         print(payslip)
         print()
 
-    print(f"Processed {len(employees)} employee(s) successfully.")
+    summary = f"Processed {len(employees)} employee(s) successfully."
+    print(summary)
+    logger.info(summary)
+    logger.info("Payroll Tracker finished")
 
 
 if __name__ == "__main__":

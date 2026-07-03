@@ -10,6 +10,10 @@ Functions:
 
 from typing import List
 
+from employee_payroll_tracker.logger import get_logger
+
+logger = get_logger(__name__)
+
 TAX_RATE = 0.20
 
 
@@ -22,7 +26,11 @@ def calculate_salary(employee) -> float:
     Returns:
         The gross salary computed by the employee's own logic.
     """
-    return employee.calculate_salary()
+    gross = employee.calculate_salary()
+    logger.debug(
+        "Gross salary for %s (ID: %d): %.2f", employee.name, employee.emp_id, gross
+    )
+    return gross
 
 
 def apply_tax(gross_salary: float, tax_rate: float = TAX_RATE) -> float:
@@ -36,10 +44,21 @@ def apply_tax(gross_salary: float, tax_rate: float = TAX_RATE) -> float:
         Net salary after tax deduction.
     """
     if gross_salary < 0:
+        logger.error("Rejected negative gross salary: %.2f", gross_salary)
         raise ValueError("Gross salary cannot be negative.")
     if not 0 <= tax_rate <= 1:
+        logger.error("Rejected invalid tax rate: %.2f", tax_rate)
         raise ValueError("Tax rate must be between 0 and 1.")
-    return round(gross_salary * (1 - tax_rate), 2)
+    net = round(gross_salary * (1 - tax_rate), 2)
+    tax_amount = round(gross_salary - net, 2)
+    logger.info(
+        "Applied tax: gross=%.2f, tax=%.2f (%.0f%%), net=%.2f",
+        gross_salary,
+        tax_amount,
+        tax_rate * 100,
+        net,
+    )
+    return net
 
 
 def generate_payslip(employee) -> str:
@@ -54,6 +73,14 @@ def generate_payslip(employee) -> str:
     gross = calculate_salary(employee)
     net = apply_tax(gross)
     tax_amount = round(gross - net, 2)
+
+    logger.info(
+        "Generated payslip for %s (ID: %d) — gross=%.2f, net=%.2f",
+        employee.name,
+        employee.emp_id,
+        gross,
+        net,
+    )
 
     lines = [
         "=" * 54,
@@ -81,4 +108,11 @@ def process_payroll(employees: List) -> List[str]:
     Returns:
         A list of formatted payslip strings, one per employee.
     """
-    return [generate_payslip(emp) for emp in employees]
+    if not employees:
+        logger.warning("process_payroll called with empty employee list")
+        return []
+
+    logger.info("Processing payroll for %d employee(s)", len(employees))
+    payslips = [generate_payslip(emp) for emp in employees]
+    logger.info("Payroll complete — %d payslip(s) generated", len(payslips))
+    return payslips

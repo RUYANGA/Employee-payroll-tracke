@@ -6,6 +6,10 @@ encapsulated attributes and property validation.
 
 from abc import ABC, abstractmethod
 
+from employee_payroll_tracker.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class Employee(ABC):
     """Abstract base class for all employee types.
@@ -19,6 +23,9 @@ class Employee(ABC):
         self.name = name
         self._salary = 0.0
         self.salary = salary
+        logger.info(
+            "Created %s employee: %s (ID: %d)", self.employee_type(), name, emp_id
+        )
 
     @property
     def salary(self) -> float:
@@ -29,6 +36,12 @@ class Employee(ABC):
     def salary(self, value: float) -> None:
         """Set the employee's base salary, validating it is positive."""
         if value <= 0:
+            logger.warning(
+                "Rejected invalid salary %.2f for %s (ID: %d)",
+                value,
+                self.name,
+                self.emp_id,
+            )
             raise ValueError("Salary must be greater than zero.")
         self._salary = value
 
@@ -65,12 +78,27 @@ class FullTimeEmployee(Employee):
     def bonus(self, value: float) -> None:
         """Set the bonus, ensuring it is non-negative."""
         if value < 0:
+            logger.warning(
+                "Rejected negative bonus %.2f for %s (ID: %d)",
+                value,
+                self.name,
+                self.emp_id,
+            )
             raise ValueError("Bonus cannot be negative.")
         self._bonus = value
 
     def calculate_salary(self) -> float:
         """Return base salary plus bonus."""
-        return self.salary + self.bonus
+        total = self.salary + self.bonus
+        logger.debug(
+            "Calculated salary for %s (ID: %d): base=%.2f + bonus=%.2f = %.2f",
+            self.name,
+            self.emp_id,
+            self.salary,
+            self.bonus,
+            total,
+        )
+        return total
 
     def employee_type(self) -> str:
         return "Full-Time"
@@ -95,6 +123,12 @@ class ContractEmployee(Employee):
     def hourly_rate(self, value: float) -> None:
         """Set the hourly rate, delegating to the salary setter."""
         if value <= 0:
+            logger.warning(
+                "Rejected invalid hourly rate %.2f for %s (ID: %d)",
+                value,
+                self.name,
+                self.emp_id,
+            )
             raise ValueError("Hourly rate must be greater than zero.")
         self.salary = value
 
@@ -107,14 +141,35 @@ class ContractEmployee(Employee):
     def hours_worked(self, value: float) -> None:
         """Set hours worked, capped at 744 (max in a 31-day month)."""
         if value < 0:
+            logger.warning(
+                "Rejected negative hours %.2f for %s (ID: %d)",
+                value,
+                self.name,
+                self.emp_id,
+            )
             raise ValueError("Hours worked cannot be negative.")
         if value > 744:
+            logger.warning(
+                "Rejected hours %.2f (exceeds 744) for %s (ID: %d)",
+                value,
+                self.name,
+                self.emp_id,
+            )
             raise ValueError("Hours worked cannot exceed 744 in a month.")
         self._hours_worked = value
 
     def calculate_salary(self) -> float:
         """Return hourly rate multiplied by hours worked."""
-        return self.hourly_rate * self.hours_worked
+        total = self.hourly_rate * self.hours_worked
+        logger.debug(
+            "Calculated salary for %s (ID: %d): rate=%.2f x hours=%.2f = %.2f",
+            self.name,
+            self.emp_id,
+            self.hourly_rate,
+            self.hours_worked,
+            total,
+        )
+        return total
 
     def employee_type(self) -> str:
         return "Contract"
@@ -140,7 +195,14 @@ class Intern(Employee):
 
     def calculate_salary(self) -> float:
         """Return the fixed stipend amount."""
-        return self.salary
+        total = self.salary
+        logger.debug(
+            "Calculated salary for %s (ID: %d): stipend=%.2f",
+            self.name,
+            self.emp_id,
+            total,
+        )
+        return total
 
     def employee_type(self) -> str:
         return "Intern"
