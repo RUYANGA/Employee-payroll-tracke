@@ -1,0 +1,9 @@
+# Employee Payroll Tracker — Dependencies
+# Use with: pip install -r requirements.txt
+
+# Runtime
+# (None — pure Python standard library)
+
+# Development
+pytest>=8.0
+ruff>=0.5.0

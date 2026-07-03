@@ -1,18 +1,32 @@
 [project]
 name = "employee-payroll-tracker"
-version = "0.1.0"
-description = ""
+version = "0.2.0"
+description = "A Python-based Employee Payroll Tracker with support for full-time, contract, and intern employees."
 authors = [
-    {name = "RUYANGA",email = "ruyangam15@gmail.com"}
+    {name = "RUYANGA", email = "ruyangam15@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-]
+dependencies = []
 
 [tool.poetry]
 packages = [{include = "employee_payroll_tracker", from = "src"}]
 
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+ruff = ">=0.5.0"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
